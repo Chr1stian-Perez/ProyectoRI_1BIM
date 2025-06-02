@@ -1,0 +1,3 @@
+ir_datasets
+nltk
+numpy
