@@ -1,53 +1,143 @@
-import pickle
-import numpy as np
-from utils import tokenize, compute_idf
+"""
+Modelos de recuperación: TF-IDF y BM25
+"""
+import math
+from typing import List, Tuple, Dict
+from collections import defaultdict
+from .utils import TextProcessor, load_index
 
-def load_index():
-    with open('data/index.pkl', 'rb') as f:
-        d = pickle.load(f)
-    return d['index'], d['lengths'], d['N']
-
-def tfidf_search(query, k=10):
-    index, doc_lengths, N = load_index()
-    idf = compute_idf(index, N)
-    q_tokens = tokenize(query)
-    docs = {}
-    q_tf = {}
-    for t in q_tokens:
-        q_tf[t] = q_tf.get(t, 0) + 1
-    query_vec = []
-    vocab = list(index.keys())
-    for term in vocab:
-        query_vec.append(q_tf.get(term, 0) * idf.get(term, 0))
-    query_vec = np.array(query_vec)
-    doc_vecs = {}
-    for i, term in enumerate(vocab):
-        for doc_id, tf in index[term]:
-            if doc_id not in doc_vecs:
-                doc_vecs[doc_id] = np.zeros(len(vocab))
-            doc_vecs[doc_id][i] = tf * idf[term]
-    results = []
-    q_norm = np.linalg.norm(query_vec)
-    for doc_id, vec in doc_vecs.items():
-        sim = np.dot(query_vec, vec) / (q_norm * np.linalg.norm(vec) + 1e-9)
-        results.append((doc_id, sim))
-    results.sort(key=lambda x: x[1], reverse=True)
-    return results[:k]
-
-def bm25_search(query, k=10, k1=1.5, b=0.75):
-    index, doc_lengths, N = load_index()
-    idf = compute_idf(index, N)
-    q_tokens = tokenize(query)
-    import numpy as np
-    avgdl = np.mean(list(doc_lengths.values()))
-    scores = {}
-    for term in set(q_tokens):
-        if term not in index:
-            continue
-        idf_term = idf[term]
-        for doc_id, tf in index[term]:
-            dl = doc_lengths[doc_id]
-            score = idf_term * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * dl / avgdl))
-            scores[doc_id] = scores.get(doc_id, 0) + score
-    ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    return ranked[:k]
+class RetrievalSystem:
+    """Sistema de recuperación con TF-IDF y BM25"""
+    
+    def __init__(self, index_path: str = "data/index.pkl"):
+        """
+        Inicializa el sistema de recuperación
+        
+        Args:
+            index_path: Ruta al archivo del índice
+        """
+        self.processor = TextProcessor()
+        self._load_index(index_path)
+    
+    def _load_index(self, index_path: str):
+        """Carga el índice desde disco"""
+        try:
+            index_data = load_index(index_path)
+            self.inverted_index = index_data['inverted_index']
+            self.doc_lengths = index_data['doc_lengths']
+            self.doc_count = index_data['doc_count']
+            self.avg_doc_length = index_data['avg_doc_length']
+            print(f"Índice cargado: {self.doc_count} documentos, {len(self.inverted_index)} términos")
+        except FileNotFoundError:
+            raise FileNotFoundError(f"No se encontró el índice en {index_path}. Ejecuta primero indexer.py")
+    
+    def tfidf_search(self, query: str, k: int = 10) -> List[Tuple[str, float]]:
+        """
+        Búsqueda usando TF-IDF con similitud coseno
+        
+        Args:
+            query: Consulta de texto
+            k: Número de documentos a retornar
+            
+        Returns:
+            Lista de (doc_id, score) ordenada por relevancia
+        """
+        query_terms = self.processor.tokenize_and_normalize(query)
+        if not query_terms:
+            return []
+        
+        # Calcular vector de consulta
+        query_vector = self._calculate_query_tfidf_vector(query_terms)
+        
+        # Calcular scores para todos los documentos candidatos
+        doc_scores = defaultdict(float)
+        doc_norms = defaultdict(float)
+        
+        for term in query_terms:
+            if term not in self.inverted_index:
+                continue
+            
+            # IDF del término
+            df = len(self.inverted_index[term])
+            idf = math.log(self.doc_count / df)
+            
+            for doc_id, tf in self.inverted_index[term]:
+                # TF-IDF del documento
+                tfidf_doc = tf * idf
+                
+                # Producto punto para similitud coseno
+                doc_scores[doc_id] += query_vector[term] * tfidf_doc
+                doc_norms[doc_id] += tfidf_doc ** 2
+        
+        # Normalizar scores (similitud coseno)
+        query_norm = math.sqrt(sum(score ** 2 for score in query_vector.values()))
+        
+        for doc_id in doc_scores:
+            doc_norm = math.sqrt(doc_norms[doc_id])
+            if doc_norm > 0 and query_norm > 0:
+                doc_scores[doc_id] = doc_scores[doc_id] / (doc_norm * query_norm)
+        
+        # Ordenar y retornar top-k
+        ranked_docs = sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)
+        return ranked_docs[:k]
+    
+    def bm25_search(self, query: str, k: int = 10, k1: float = 1.5, b: float = 0.75) -> List[Tuple[str, float]]:
+        """
+        Búsqueda usando BM25
+        
+        Args:
+            query: Consulta de texto
+            k: Número de documentos a retornar
+            k1: Parámetro de saturación de término
+            b: Parámetro de normalización de longitud
+            
+        Returns:
+            Lista de (doc_id, score) ordenada por relevancia
+        """
+        query_terms = self.processor.tokenize_and_normalize(query)
+        if not query_terms:
+            return []
+        
+        doc_scores = defaultdict(float)
+        
+        for term in query_terms:
+            if term not in self.inverted_index:
+                continue
+            
+            # IDF del término
+            df = len(self.inverted_index[term])
+            idf = math.log((self.doc_count - df + 0.5) / (df + 0.5))
+            
+            for doc_id, tf in self.inverted_index[term]:
+                # Longitud del documento
+                doc_length = self.doc_lengths.get(doc_id, 0)
+                
+                # BM25 score
+                numerator = tf * (k1 + 1)
+                denominator = tf + k1 * (1 - b + b * (doc_length / self.avg_doc_length))
+                
+                bm25_component = idf * (numerator / denominator)
+                doc_scores[doc_id] += bm25_component
+        
+        # Ordenar y retornar top-k
+        ranked_docs = sorted(doc_scores.items(), key=lambda x: x[1], reverse=True)
+        return ranked_docs[:k]
+    
+    def _calculate_query_tfidf_vector(self, query_terms: List[str]) -> Dict[str, float]:
+        """Calcula el vector TF-IDF de la consulta"""
+        # Frecuencias de términos en la consulta
+        term_freq = defaultdict(int)
+        for term in query_terms:
+            term_freq[term] += 1
+        
+        # Calcular TF-IDF para cada término de la consulta
+        query_vector = {}
+        for term, tf in term_freq.items():
+            if term in self.inverted_index:
+                df = len(self.inverted_index[term])
+                idf = math.log(self.doc_count / df)
+                query_vector[term] = tf * idf
+            else:
+                query_vector[term] = 0
+        
+        return query_vector
