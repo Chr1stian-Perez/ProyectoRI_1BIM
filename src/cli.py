@@ -6,7 +6,7 @@ from .retrieval import RetrievalSystem
 
 class SearchCLI:
     """Interfaz de línea de comandos para búsquedas"""
-    
+
     def __init__(self):
         try:
             self.retrieval_system = RetrievalSystem()
@@ -14,7 +14,7 @@ class SearchCLI:
         except FileNotFoundError as e:
             print(f"Error: {e}")
             sys.exit(1)
-    
+
     def run(self):
         """Ejecuta la interfaz interactiva"""
         print("\n" + "="*60)
@@ -25,54 +25,56 @@ class SearchCLI:
         print("  - 'quit' o 'exit' para salir")
         print("  - 'help' para mostrar esta ayuda")
         print("="*60)
-        
+
         while True:
             try:
                 query = input("\nConsulta > ").strip()
-                
+
                 if not query:
                     continue
-                
+
                 if query.lower() in ['quit', 'exit']:
                     print("¡Hasta luego!")
                     break
-                
+
                 if query.lower() == 'help':
                     self._show_help()
                     continue
-                
+
                 self._process_query(query)
-                
+
             except KeyboardInterrupt:
                 print("\n¡Hasta luego!")
                 break
             except Exception as e:
                 print(f"Error procesando consulta: {e}")
-    
+
     def _process_query(self, query: str):
         """Procesa una consulta y muestra resultados"""
         print(f"\nBuscando: '{query}'")
         print("-" * 50)
-        
+
         # Búsqueda con TF-IDF
         print("\n📊 RESULTADOS TF-IDF:")
         tfidf_results = self.retrieval_system.tfidf_search(query, k=10)
         self._display_results(tfidf_results, "TF-IDF")
-        
+
         # Búsqueda con BM25
         print("\n🎯 RESULTADOS BM25:")
         bm25_results = self.retrieval_system.bm25_search(query, k=10)
         self._display_results(bm25_results, "BM25")
-    
+
     def _display_results(self, results: list, method: str):
-        """Muestra los resultados de búsqueda"""
+        """
+        Muestra únicamente los IDs de los documentos y los scores.
+        """
         if not results:
             print(f"  No se encontraron resultados con {method}")
             return
-        
+
         for i, (doc_id, score) in enumerate(results, 1):
             print(f"  {i:2d}. Doc: {doc_id[:50]:<50} Score: {score:.4f}")
-    
+
     def _show_help(self):
         """Muestra ayuda detallada"""
         print("\n" + "="*60)
