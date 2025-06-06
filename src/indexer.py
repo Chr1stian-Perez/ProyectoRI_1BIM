@@ -19,7 +19,7 @@ class InvertedIndexBuilder:
         self.doc_count = 0
         self.total_doc_length = 0
 
-    def build_index(self, dataset_name: str = "car/v1.5/test200", max_docs: int = 35000):
+    def build_index(self, dataset_name: str = "car/v1.5/test200", max_docs: int = 3500000):
         """
         Construye el índice invertido desde el dataset TREC CAR,
         limitando la cantidad de documentos a indexar.
@@ -86,7 +86,7 @@ def main():
     """Función principal para construcción del índice"""
     builder = InvertedIndexBuilder()
     #  número máximo de documentos
-    builder.build_index(max_docs=35000)
+    builder.build_index(max_docs=3500000)
     builder.save_index()
 
 if __name__ == "__main__":
