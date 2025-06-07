@@ -1,2 +1,3 @@
 data/index.pkl
+src/__pycache__
 # This file is used to ignore files that should not be tracked by git.
