@@ -15,7 +15,7 @@ Sistema de IR implementado en Python que utiliza el dataset TREC CAR car/v1.5/te
 
 - **Primer paso:** Instalar los requisitos ir-datasets>=0.5.5; nltk>=3.8; numpy>=1.21.0; scikit-learn>=1.0.0; colorama; pyfiglet
                     con el comando pip install -r requirments.txt
-- **Segundo paso**: Ejecutar el programa de interfaz principal del proyecto "proyecto.py"
+- **Segundo paso**: Ejecutar el programa de interfaz principal del proyecto "proyecto.py" en el teminal cmd con el comando "python proyecto.py"
 - **Tercer paso**: En la interfaz CLI seleccionar la primera opción para descargar automomaticamente el corpus TREC CAR car/v1.5/test200
                     "5GB" pasa su posterior uso en la creción del indice invertido "el corpus solo se descarga la primera vez", el indice
                     invertido solo es necesario crearlo una vez, dado que este se almacne en la carpeta /data una vez creado
