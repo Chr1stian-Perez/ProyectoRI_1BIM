@@ -1,8 +1,9 @@
-"""
-Interfaz de línea de comandos para consultas interactivas
-"""
 import sys
+from colorama import Fore, Style, init
 from .retrieval import RetrievalSystem
+
+# ✅ Inicializar colorama correctamente UNA SOLA VEZ
+init(autoreset=True, convert=True)
 
 class SearchCLI:
     """Interfaz de línea de comandos para búsquedas"""
@@ -10,31 +11,36 @@ class SearchCLI:
     def __init__(self):
         try:
             self.retrieval_system = RetrievalSystem()
-            print("Sistema de recuperación cargado correctamente")
+            print(Fore.GREEN + "✔ Sistema de recuperación cargado correctamente")
         except FileNotFoundError as e:
-            print(f"Error: {e}")
+            print(Fore.RED + f"✖ Error: {e}")
             sys.exit(1)
 
     def run(self):
         """Ejecuta la interfaz interactiva"""
-        print("\n" + "="*60)
-        print("SISTEMA DE RECUPERACIÓN DE INFORMACIÓN - TREC CAR")
-        print("="*60)
-        print("Comandos disponibles:")
-        print("  - Escribe una consulta para buscar")
-        print("  - 'quit' o 'exit' para salir")
-        print("  - 'help' para mostrar esta ayuda")
-        print("="*60)
+
+        # ✅ Mensaje de bienvenida visible y colorido
+        print(Fore.YELLOW + "\n" + "═" * 65)
+        print(Fore.WHITE + Style.BRIGHT + "╔═════════════════════════════════════════════════════════════╗")
+        print("║   " + Fore.CYAN + "SISTEMA DE RECUPERACIÓN DE INFORMACIÓN – TREC CAR" + Fore.WHITE + "   ║")
+        print("╚═════════════════════════════════════════════════════════════╝")
+        print(Fore.YELLOW + "═" * 65)
+
+        print(Fore.CYAN + Style.BRIGHT + "\nComandos disponibles:")
+        print(Fore.WHITE + "  • Escribe una consulta para buscar")
+        print("  • 'quit' o 'exit' para salir")
+        print("  • 'help' para mostrar esta ayuda")
+        print(Fore.YELLOW + "═" * 65)
 
         while True:
             try:
-                query = input("\nConsulta > ").strip()
+                query = input(Fore.BLUE + Style.BRIGHT + "\nConsulta > " + Style.RESET_ALL).strip()
 
                 if not query:
                     continue
 
                 if query.lower() in ['quit', 'exit']:
-                    print("¡Hasta luego!")
+                    print(Fore.GREEN + "👋 ¡Hasta luego!")
                     break
 
                 if query.lower() == 'help':
@@ -44,51 +50,50 @@ class SearchCLI:
                 self._process_query(query)
 
             except KeyboardInterrupt:
-                print("\n¡Hasta luego!")
+                print(Fore.GREEN + "\n👋 ¡Hasta luego!")
                 break
             except Exception as e:
-                print(f"Error procesando consulta: {e}")
+                print(Fore.RED + f"⚠️  Error procesando consulta: {e}")
 
     def _process_query(self, query: str):
         """Procesa una consulta y muestra resultados"""
-        print(f"\nBuscando: '{query}'")
-        print("-" * 50)
+        print(Fore.MAGENTA + f"\n🔎 Buscando: '{query}'")
+        print(Fore.LIGHTBLACK_EX + "─" * 50)
 
-        # Búsqueda con TF-IDF
-        print("\n📊 RESULTADOS TF-IDF:")
+        # TF-IDF
+        print(Fore.CYAN + "\n📊 RESULTADOS TF-IDF:")
         tfidf_results = self.retrieval_system.tfidf_search(query, k=10)
-        self._display_results(tfidf_results, "TF-IDF")
+        self._display_results(tfidf_results)
 
-        # Búsqueda con BM25
-        print("\n🎯 RESULTADOS BM25:")
+        # BM25
+        print(Fore.MAGENTA + "\n🎯 RESULTADOS BM25:")
         bm25_results = self.retrieval_system.bm25_search(query, k=10)
-        self._display_results(bm25_results, "BM25")
+        self._display_results(bm25_results)
 
-    def _display_results(self, results: list, method: str):
-        """
-        Muestra únicamente los IDs de los documentos y los scores.
-        """
+    def _display_results(self, results: list):
+        """Muestra solo los IDs de los documentos y los scores"""
         if not results:
-            print(f"  No se encontraron resultados con {method}")
+            print(Fore.RED + "  ⚠️  No se encontraron resultados.")
             return
 
         for i, (doc_id, score) in enumerate(results, 1):
-            print(f"  {i:2d}. Doc: {doc_id[:50]:<50} Score: {score:.4f}")
+            print(Fore.YELLOW + f"  {i:2d}. " + Fore.WHITE + f"Doc: {doc_id[:45]:<45}" +
+                  Fore.GREEN + f" Score: {score:.4f}")
 
     def _show_help(self):
         """Muestra ayuda detallada"""
-        print("\n" + "="*60)
-        print("AYUDA - Sistema de Recuperación de Información")
-        print("="*60)
-        print("Este sistema utiliza el corpus TREC CAR car/v1.5/test200")
+        print(Fore.YELLOW + "\n" + "═" * 65)
+        print(Fore.CYAN + "📘 AYUDA - Sistema de Recuperación de Información")
+        print(Fore.YELLOW + "═" * 65)
+        print(Fore.WHITE + "Este sistema utiliza el corpus TREC CAR car/v1.5/test200")
         print("\nAlgoritmos implementados:")
-        print("  • TF-IDF con similitud coseno")
+        print(Fore.GREEN + "  • TF-IDF con similitud coseno")
         print("  • BM25 (k1=1.5, b=0.75)")
         print("\nEjemplos de consultas:")
-        print("  • 'machine learning algorithms'")
+        print(Fore.BLUE + "  • 'machine learning algorithms'")
         print("  • 'neural networks deep learning'")
         print("  • 'information retrieval systems'")
-        print("="*60)
+        print(Fore.YELLOW + "═" * 65)
 
 def main():
     """Función principal de la CLI"""
