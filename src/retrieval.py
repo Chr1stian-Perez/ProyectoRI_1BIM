@@ -1,11 +1,11 @@
 """
-Modelos de recuperación: TF-IDF y BM25
+Modelos de recuperación de información: TF-IDF y BM25
 """
 import math
 from typing import List, Tuple, Dict
 from collections import defaultdict
 from .utils import load_index
-from .preprocesamiento import preprocess_text  # Usamos tu función de preprocesamiento
+from .preprocesamiento import preprocess_text 
 
 class RetrievalSystem:
     """Sistema de recuperación con TF-IDF y BM25"""
@@ -27,6 +27,7 @@ class RetrievalSystem:
             self.doc_lengths = index_data['doc_lengths']
             self.doc_count = index_data['doc_count']
             self.avg_doc_length = index_data['avg_doc_length']
+            self.doc_texts = index_data.get('doc_texts', {})
             print(f"Índice cargado: {self.doc_count} documentos, {len(self.inverted_index)} términos")
         except FileNotFoundError:
             raise FileNotFoundError(f"No se encontró el índice en {index_path}. Ejecuta primero indexer.py")
