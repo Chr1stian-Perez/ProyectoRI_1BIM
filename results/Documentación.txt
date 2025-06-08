@@ -1,1 +1,22 @@
-Aquí esta la documentación del resultado
+============================================================
+        DOCUMENTACIÓN DE EVALUACIÓN - SISTEMA DE IR        
+============================================================
+
+Dataset cargado:
+-Ruta: `car/v1.5/test200`
+-Índice con: 3,500,000 documentos y 15,592,97 términos.
+
+Consultas cargadas: 1987: Se cargaron 1987 preguntas o temas para los cuales se buscarán documentos en el índice.
+Grupos de relevancia cargados: 1860: Existen 1860 consultas en `test200` que tienen al menos un grupo de documentos marcados como relevantes en los archivos `qrels`. Estas son las que se usarán para evaluar el rendimiento del sistema.
+
+Proceso de evaluación:
+1. Para cada consulta del conjunto `test200`, el sistema utiliza los modelos de recuperación TF-IDF y BM25 para recuperar documentos desde el índice.
+2. Los documentos recuperados se comparan con los documentos relevantes definidos previamente (`qrels`).
+3. Para cada método (TF-IDF y BM25), se calculan las siguientes métricas:
+ -Precision@k: Precisión para los primeros k documentos recuperados, donde k = 10, 20, ..., 100.
+ -Recall@k: Fracción de documentos relevantes que fueron recuperados en los primeros k resultados.
+ -Average Precision: Precisión promedio acumulada a lo largo del ranking de cada consulta.
+
+El MAP es la **métrica principal para evaluar sistemas de recuperación de información
+
+Los resultados son mostrados en consola y guardados en un archivo JSON para su posterior análisis.
