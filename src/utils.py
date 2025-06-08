@@ -4,7 +4,6 @@ Utilidades comunes para el sistema de IR
 import pickle
 import json
 from typing import Dict
-import ir_datasets  # Para la función de recuperación de texto por ID
 
 def save_index(index_data: Dict, filepath: str) -> None:
     """Guarda el índice en disco"""
@@ -21,3 +20,8 @@ def save_results(results: Dict, filepath: str) -> None:
     with open(filepath, 'w') as f:
         json.dump(results, f, indent=2)
 
+def get_doc_text_by_id(doc_id, doc_texts):
+    """
+    Devuelve el texto del documento a partir de su doc_id usando el diccionario doc_texts cargado en memoria.
+    """
+    return doc_texts.get(doc_id, "[No se ha encontrado texto]")

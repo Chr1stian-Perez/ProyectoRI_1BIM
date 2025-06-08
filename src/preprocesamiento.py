@@ -24,7 +24,7 @@ lemmatizer = WordNetLemmatizer()
 
 def preprocess_text(text: str):
     """
-    Realiza preprocesamiento: minúsculas, tokenización, stopwords, lematización.
+    Realiza preprocesamiento: minúsculas, tokenización, stopwords, lematización
     Solo usa NLTK. Devuelve lista de tokens procesados.
     """
     if not text:

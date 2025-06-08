@@ -1,6 +1,6 @@
 """
 Construcción del índice invertido con preprocesamiento (lematización NLTK)
-y límite de documentos a indexar.
+y límite de documentos a indexar
 """
 import os
 import sys
@@ -18,6 +18,7 @@ class InvertedIndexBuilder:
         self.doc_lengths = {}  # {doc_id: longitud}
         self.doc_count = 0
         self.total_doc_length = 0
+        self.doc_texts = {}  
 
     def build_index(self, dataset_name: str = "car/v1.5/test200", max_docs: int = 3500000):
         """
@@ -53,6 +54,7 @@ class InvertedIndexBuilder:
         tokens = preprocess_text(text)  # Lematización y preprocesamiento
         if not tokens:
             return
+        self.doc_texts[doc_id] = text  # GUARDA EL TEXTO DEL DOC
 
         # Contar frecuencias de términos
         term_frequencies = Counter(tokens)
@@ -76,7 +78,8 @@ class InvertedIndexBuilder:
             'doc_lengths': self.doc_lengths,
             'doc_count': self.doc_count,
             'avg_doc_length': self.avg_doc_length,
-            'total_doc_length': self.total_doc_length
+            'total_doc_length': self.total_doc_length,
+            'doc_texts': self.doc_texts  #GUARDA EL DICCIONARIO
         }
 
         save_index(index_data, filepath)
@@ -85,7 +88,7 @@ class InvertedIndexBuilder:
 def main():
     """Función principal para construcción del índice"""
     builder = InvertedIndexBuilder()
-    #  número máximo de documentos
+    # número máximo de documentos
     builder.build_index(max_docs=3500000)
     builder.save_index()
 

@@ -153,7 +153,7 @@ class IREvaluator:
         return summary
 
     def _display_results(self, results: Dict):
-        """Muestra los resultados de evaluación"""
+        """Esta sección uestra los resultados de evaluación"""
         print("\n" + "="*80)
         print("RESULTADOS DE EVALUACIÓN - SISTEMA DE IR")
         print("="*80)
