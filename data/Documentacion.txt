@@ -1,2 +1,3 @@
 El archivo index.pkl almacena el indice invertido de los 3500000 documentos preprocesados
 su peso es de 2.5 GB
+https://epnecuador-my.sharepoint.com/:u:/g/personal/christian_perez01_epn_edu_ec/EWVPJGm9sM1Orl0xSv_CEfQBjl8DAwr6BZIyk7uPCxbL8w?e=1SfeDA
